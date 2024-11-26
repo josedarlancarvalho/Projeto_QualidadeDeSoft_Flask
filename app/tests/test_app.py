@@ -4,14 +4,25 @@ from app.models import User
 
 class UserManagerTestCase(unittest.TestCase):
     def setUp(self):
+        # Configurar o contexto da aplicação
+        self.app_context = app.app_context()
+        self.app_context.push()
+
+        # Configurar a aplicação para testes
         app.config['TESTING'] = True
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+        # Criar cliente de teste e banco de dados
         self.client = app.test_client()
         db.create_all()
 
     def tearDown(self):
+        # Remover a sessão e o banco de dados
         db.session.remove()
         db.drop_all()
+
+        # Encerrar o contexto da aplicação
+        self.app_context.pop()
 
     def test_register_user(self):
         response = self.client.post('/register', json={
