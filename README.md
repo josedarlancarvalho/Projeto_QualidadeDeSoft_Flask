@@ -79,7 +79,7 @@ Os testes foram desenvolvidos para garantir o funcionamento correto das rotas de
 
 ### Estrutura do Arquivo de Testes
 
-O arquivo de testes (`test_app.py`) utiliza o `pytest` para validação. Ele cobre cenários chave para as principais funcionalidades do sistema:
+O arquivo de testes (`auth_test.py`) utiliza o `pytest` para validação. Ele cobre cenários chave para as principais funcionalidades do sistema:
 - Uso do `cliente` para simular requisições às rotas `/cadastro` e `/login`.
 - Verificações de códigos de status HTTP e mensagens de erro ou sucesso no retorno.
 
@@ -94,6 +94,7 @@ def test_cadastro_completo(cliente):
     assert resposta.status_code == 201
     assert resposta.get_json()['mensagem'] == 'Cadastro realizado com sucesso!'
 ```
+![Tests concluidos.](/tests_passes.png)
 
 ## Funcionalidades do Projeto
 
