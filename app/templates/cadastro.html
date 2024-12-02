@@ -77,16 +77,17 @@
     {% endif %}
 
     <form method="POST" action="/cadastro">
-        <label for="username">Nome de Usuário:</label>
-        <input type="text" id="username" name="username" required>
-        
-        <label for="email">E-mail:</label>
-        <input type="email" id="email" name="email" required>
-        
-        <label for="senha">Senha:</label>
-        <input type="password" id="senha" name="senha" required>
-        
-        <button type="submit">Registrar</button>
+        <input type="text" name="username" placeholder="Nome de usuário" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="senha" placeholder="Senha" required>
+        <button type="submit">Cadastrar</button>
+        {% if mensagem_erro %}
+            <p style="color:red;">{{ mensagem_erro }}</p>
+        {% endif %}
+        {% if mensagem_sucesso %}
+            <p style="color:green;">{{ mensagem_sucesso }}</p>
+        {% endif %}
     </form>
+    
 </body>
 </html>

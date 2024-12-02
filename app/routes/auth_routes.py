@@ -3,53 +3,57 @@ from app import app, db
 from app.models import Usuario
 from sqlalchemy.exc import IntegrityError
 
-@app.route('/cadastro', methods=['GET', 'POST'])
+@app.route('/cadastro', methods=['POST'])
 def cadastro():
-    if request.method == 'POST':
-        username = request.form.get('username')  # Captura do campo username
-        email = request.form.get('email')
-        senha = request.form.get('senha')
+    """Processa o cadastro de usuário"""
+    data = request.get_json()
 
-        if not username or not email or not senha:
-            return render_template('cadastro.html', mensagem_erro='Todos os campos são obrigatórios.')
+    username = data.get('username')
+    email = data.get('email')
+    senha = data.get('senha')
 
-        if len(senha) < 8:
-            return render_template('cadastro.html', mensagem_erro='A senha deve ter pelo menos 8 caracteres.')
+    # Validação de campos obrigatórios
+    if not username or not email or not senha:
+        return jsonify({'erro': 'Email, senha e username são obrigatórios.'}), 400
 
-        if Usuario.query.filter_by(email=email).first():
-            return render_template('cadastro.html', mensagem_erro='Email já cadastrado.')
+    # Validação do tamanho da senha
+    if len(senha) < 8:
+        return jsonify({'erro': 'A senha deve ter pelo menos 8 caracteres.'}), 400
 
-        novo_usuario = Usuario(username=username, email=email)
-        novo_usuario.set_senha(senha)
+    # Validação de email duplicado
+    if Usuario.query.filter_by(email=email).first():
+        return jsonify({'erro': 'Email já cadastrado.'}), 400
 
-        try:
-            db.session.add(novo_usuario)
-            db.session.commit()
-            return render_template('login.html', mensagem_sucesso='Cadastro realizado com sucesso!')
-        except IntegrityError:
-            db.session.rollback()  # Desfaz a transação em caso de erro
-            return render_template('cadastro.html', mensagem_erro='Nome de usuário já existe. Tente outro.')
+    # Criação do novo usuário
+    novo_usuario = Usuario(username=username, email=email)
+    novo_usuario.set_senha(senha)
 
-    return render_template('cadastro.html', mensagem_erro=None)
+    try:
+        db.session.add(novo_usuario)
+        db.session.commit()
+        return jsonify({'mensagem': 'Cadastro realizado com sucesso!'}), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'erro': 'Nome de usuário já existe. Tente outro.'}), 400
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        senha = request.form.get('senha')
+    """Processa o login de usuário"""
+    data = request.get_json()
 
-        # Validar se os campos foram preenchidos
-        if not email or not senha:
-            return render_template('login.html', mensagem_erro='Email e senha são obrigatórios.')
+    email = data.get('email')
+    senha = data.get('senha')
 
-        # Procurar usuário no banco
-        usuario = Usuario.query.filter_by(email=email).first()
+    # Validação de campos obrigatórios
+    if not email or not senha:
+        return jsonify({'erro': 'Email e senha são obrigatórios.'}), 400
 
-        # Verificar credenciais
-        if not usuario or not usuario.check_senha(senha):
-            return render_template('login.html', mensagem_erro='Credenciais inválidas.')
+    # Procurar usuário no banco
+    usuario = Usuario.query.filter_by(email=email).first()
 
-        # Login bem-sucedido
-        return render_template('login.html', mensagem_sucesso=f'Bem-vindo, {email}!')
+    # Verificação de credenciais
+    if not usuario or not usuario.check_senha(senha):
+        return jsonify({'erro': 'Credenciais inválidas.'}), 401
 
-    return render_template('login.html', mensagem_erro=None)
+    # Login bem-sucedido
+    return jsonify({'mensagem': 'Login realizado com sucesso.'}), 200
