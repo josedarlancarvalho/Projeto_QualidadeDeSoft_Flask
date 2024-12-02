@@ -1,3 +1,10 @@
+Projeto de QUALIDADE DE SOFTWARE 
+
+Alunos: José Darlan de Lima Carvalho – 01466857 
+
+Bruno Belarmino da Silva - 24010424 
+
+Turma: 6NA                 Curso: Sistemas da Informação 
 
 # Projeto de Qualidade de Software - Flask
 
