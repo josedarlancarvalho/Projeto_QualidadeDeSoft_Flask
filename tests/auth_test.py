@@ -10,7 +10,14 @@ def cliente():
     with app.test_client() as cliente:
         with app.app_context():
             db.create_all()  # Cria tabelas para o teste
+            
+            # Adiciona um usuário de teste
+            usuario_teste = Usuario(email='teste@teste.com', senha='senha123')
+            db.session.add(usuario_teste)
+            db.session.commit()
+        
         yield cliente
+        
         with app.app_context():
             db.session.remove()
             db.drop_all()  # Remove tabelas após o teste
@@ -41,23 +48,7 @@ def test_login_credenciais_invalidas(cliente):
     assert resposta.status_code == 401
     assert resposta.get_json()['erro'] == 'Credenciais inválidas.'
 
-@app.route('/cadastro', methods=['POST'])
-def cadastro():
-    dados = request.get_json()
-    email = dados.get('email')
-    senha = dados.get('senha')
-
-    if not email or not senha:
-        return jsonify({'erro': 'Email e senha são obrigatórios.'}), 400
-
-    if len(senha) < 8:
-        return jsonify({'erro': 'A senha deve ter pelo menos 8 caracteres.'}), 400
-
-    usuario_existente = Usuario.query.filter_by(email=email).first()
-    if usuario_existente:
-        return jsonify({'erro': 'Email já cadastrado.'}), 400
-
-    novo_usuario = Usuario(email=email, senha=senha)
-    db.session.add(novo_usuario)
-    db.session.commit()
-    return jsonify({'mensagem': 'Usuário cadastrado com sucesso.'}), 201
+def test_login_credenciais_validas(cliente):
+    resposta = cliente.post('/login', json={'email': 'teste@teste.com', 'senha': 'senha123'})
+    assert resposta.status_code == 200
+    assert resposta.get_json()['mensagem'] == 'Login realizado com sucesso.'

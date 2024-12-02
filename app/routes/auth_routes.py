@@ -1,33 +1,34 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from app import app, db
 from app.models import Usuario
+from sqlalchemy.exc import IntegrityError
 
 @app.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
+        username = request.form.get('username')  # Captura do campo username
         email = request.form.get('email')
         senha = request.form.get('senha')
 
-        # Validar se os campos foram preenchidos
-        if not email or not senha:
-            return render_template('cadastro.html', mensagem_erro='Email e senha são obrigatórios.')
+        if not username or not email or not senha:
+            return render_template('cadastro.html', mensagem_erro='Todos os campos são obrigatórios.')
 
-        # Verificar tamanho da senha
         if len(senha) < 8:
             return render_template('cadastro.html', mensagem_erro='A senha deve ter pelo menos 8 caracteres.')
 
-        # Verificar duplicidade de email
         if Usuario.query.filter_by(email=email).first():
             return render_template('cadastro.html', mensagem_erro='Email já cadastrado.')
 
-        # Criar novo usuário
-        novo_usuario = Usuario(email=email)
+        novo_usuario = Usuario(username=username, email=email)
         novo_usuario.set_senha(senha)
-        db.session.add(novo_usuario)
-        db.session.commit()
 
-        # Redirecionar com mensagem de sucesso
-        return render_template('login.html', mensagem_sucesso='Cadastro realizado com sucesso!')
+        try:
+            db.session.add(novo_usuario)
+            db.session.commit()
+            return render_template('login.html', mensagem_sucesso='Cadastro realizado com sucesso!')
+        except IntegrityError:
+            db.session.rollback()  # Desfaz a transação em caso de erro
+            return render_template('cadastro.html', mensagem_erro='Nome de usuário já existe. Tente outro.')
 
     return render_template('cadastro.html', mensagem_erro=None)
 
